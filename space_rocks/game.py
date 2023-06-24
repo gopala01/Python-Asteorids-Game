@@ -1,18 +1,15 @@
 import pygame
 from models import GameObject
 from utils import load_sprite
+from models import Spaceship
 
 class SpaceRocks:
     def __init__(self):
         self._init_pygame()
         self.screen = pygame.display.set_mode((800, 600)) #Creates a display surface size 800pixels x 600pixels
         self.background = load_sprite("space", False) #Makes the background space.png using load_sprite imported from utils.py
-        self.spaceship = GameObject(
-            (400, 300), load_sprite("spaceship"), (0, 0)
-        )
-        self.asteroid = GameObject(
-            (400, 300), load_sprite("asteroid"), (1, 0)
-        )
+        self.clock = pygame.time.Clock() #create a clock object to help track time
+        self.spaceship = Spaceship((400, 300)) 
 
     # Both spaceship and asteroid objects are placed in the middle of the screen, using the coordinates (400, 300)
 
@@ -37,6 +34,14 @@ class SpaceRocks:
                 quit()
         #If we press X or Esc on keyboard the game will quit
 
+        is_key_pressed = pygame.key.get_pressed()
+
+        if is_key_pressed[pygame.K_RIGHT]:
+            self.spaceship.rotate(clockwise=True)
+        elif is_key_pressed[pygame.K_LEFT]:
+            self.spaceship.rotate(clockwise=False)
+        # Spaceship will rotate left and right when we press arrow keys
+
     def _process_game_logic(self): # Updates spaceship and asteroid position
         self.spaceship.move()
         self.asteroid.move()
@@ -48,5 +53,6 @@ class SpaceRocks:
         self.spaceship.draw(self.screen)
         self.asteroid.draw(self.screen)
         pygame.display.flip() # Updates the content of the screen as we are using moving objects
-        print("Collides:", self.spaceship.collides_with(self.asteroid))
+        self.clock.tick(60) #Game will always run at 60 FPS
+        
     
