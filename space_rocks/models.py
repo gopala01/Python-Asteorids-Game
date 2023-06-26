@@ -1,6 +1,6 @@
 from pygame.math import Vector2
 from pygame.transform import rotozoom
-from utils import load_sprite
+from utils import load_sprite, wrap_position
 
 
 UP = Vector2(0, -1)
@@ -16,8 +16,9 @@ class GameObject:
         blit_position = self.position - Vector2(self.radius) # Calculates the correct position for blitting the image
         surface.blit(self.sprite, blit_position) # Uses the newly calculated blit position to put your object’s sprite in a correct place on the given surface
 
-    def move(self):
-        self.position = self.position + self.velocity # Updates postion of game object by adding velocity to position
+    def move(self, surface):
+        self.position = wrap_position(self.position + self.velocity, surface) 
+        # Updates postion of game object by adding velocity to position and ensuring that area around the position is wrapped so that object doesn't leave screen
 
     def collides_with(self, other_obj):
         distance = self.position.distance_to(other_obj.position) # Calculates the distance between two objects by using Vector2.distance_to()
@@ -25,7 +26,8 @@ class GameObject:
     
 class Spaceship(GameObject):
     #Inherits from GameObject
-    MANEUVERABILITY = 3 #Determines how fast spaceship can rotate
+    MANEUVERABILITY = 3 #Value to determines how fast spaceship can rotate
+    ACCELERATION = 0.25 #Value to determines how fast spaceship can accelerate
     def __init__(self, position):
         self.direction = Vector2(UP) # Make a copy of the original UP vector
         super().__init__(position, load_sprite("spaceship"), Vector2(0))
@@ -43,4 +45,11 @@ class Spaceship(GameObject):
         blit_position = self.position - rotated_surface_size * 0.5
         # Recalculate the blit position, using the size of rotated_surface. 
         surface.blit(rotated_surface, blit_position) # Uses the newly calculated blit position to put the image on the screen.
+
+    def accelerate(self):
+        self.velocity += self.direction * self.ACCELERATION #Calculates acceleration
+
+class Asteroid(GameObject):
+    def __init__(self, position):
+        super().__init__(position, load_sprite("asteroid"), (0,0))
         
