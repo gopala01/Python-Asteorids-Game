@@ -1,6 +1,6 @@
 from pygame.math import Vector2
 from pygame.transform import rotozoom
-from utils import load_sprite, wrap_position
+from utils import load_sprite, wrap_position, get_random_velocity, load_sound
 
 
 UP = Vector2(0, -1)
@@ -28,8 +28,11 @@ class Spaceship(GameObject):
     #Inherits from GameObject
     MANEUVERABILITY = 3 #Value to determines how fast spaceship can rotate
     ACCELERATION = 0.25 #Value to determines how fast spaceship can accelerate
-    def __init__(self, position):
+    BULLET_SPEED = 3
+    def __init__(self, position, create_bullet_callback):
+        self.create_bullet_callback = create_bullet_callback
         self.direction = Vector2(UP) # Make a copy of the original UP vector
+        self.laser_sound = load_sound("laser")
         super().__init__(position, load_sprite("spaceship"), Vector2(0))
     
     def rotate(self, clockwise =True):
@@ -49,7 +52,40 @@ class Spaceship(GameObject):
     def accelerate(self):
         self.velocity += self.direction * self.ACCELERATION #Calculates acceleration
 
+    def shoot(self):
+        bullet_velocity = self.direction * self.BULLET_SPEED + self.velocity
+        bullet = Bullet(self.position, bullet_velocity)
+        self.create_bullet_callback(bullet)
+        self.laser_sound.play()
+
 class Asteroid(GameObject):
-    def __init__(self, position):
-        super().__init__(position, load_sprite("asteroid"), (0,0))
+    def __init__(self, position, create_asteroid_callback, size=3):
+        self.create_asteroid_callback = create_asteroid_callback
+        self.size = size #Assigns size 3 to each asteroid which makes them big asteorids
+
+        size_to_scale = {
+            3 : 1,
+            2: 0.5,
+            1:0.25,
+        }
+        scale = size_to_scale[size]
+        sprite = rotozoom(load_sprite("asteroid"), 0, scale)
+        #Scales original sprite using rotozoom
+        super().__init__(position, load_sprite("asteroid"), get_random_velocity(1,3))
+
+    def split(self):
+        if self.size > 1:
+            for _ in range(2):
+                asteroid = Asteroid( self.position, self.create_asteroid_callback, self.size - 1)
+                self.create_asteroid_callback(asteroid)
+        #Creates two new asteroids at the same position as the current one with a slightly smaller size if the current asteroid is a medium or large one.
+
+class Bullet(GameObject):
+    def __init__(self, position, velocity):
+        super().__init__(position, load_sprite("bullet"), velocity)
+
+    def move(self, surface):
+        self.position = self.position + self.velocity
+    #Overrides the GameObject move method to ensure that bullet object doesn't get wrapped
+ 
         
