@@ -22,7 +22,7 @@ class GameObject:
 
     def collides_with(self, other_obj):
         distance = self.position.distance_to(other_obj.position) # Calculates the distance between two objects by using Vector2.distance_to()
-        return distance > self.radius + other_obj.radius # Checks if that distance is smaller than the sum of the objects’ radiuses. If so, the objects collide.
+        return distance < self.radius + other_obj.radius # Checks if that distance is smaller than the sum of the objects’ radiuses. If so, the objects collide.
     
 class Spaceship(GameObject):
     #Inherits from GameObject
